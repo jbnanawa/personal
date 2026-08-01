@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f2231">
+<title>Manifest — trip planner &amp; budget</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Inter:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0f2231;        /* deep harbour navy */
+  --deep:#0a1922;
+  --paper:#f4efe4;      /* aged chart paper */
+  --line:#3a4d5c;
+  --coral:#e8674c;      /* signal / actions */
+  --brass:#c99a3f;      /* money accent */
+  --sea:#4a9b8e;        /* transit / go */
+  --dim:#8798a4;
+  --dimink:#5f7484;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:'Inter',system-ui,sans-serif;
+  line-height:1.55;
+  padding:0 0 90px;
+  background-image:
+    radial-gradient(circle at 20% 10%,rgba(74,155,142,.06),transparent 40%),
+    radial-gradient(circle at 85% 60%,rgba(201,154,63,.05),transparent 45%);
+}
+.wrap{max-width:820px;margin:0 auto;padding:0 22px}
+
+/* masthead */
+header{padding:52px 0 26px;border-bottom:1px solid var(--line);margin-bottom:38px}
+.flag{
+  font-family:'Spline Sans Mono',monospace;
+  font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:18px;display:flex;gap:12px;align-items:center;
+}
+.flag::before{content:'';width:26px;height:1px;background:var(--brass)}
+h1{
+  font-family:'Fraunces',serif;
+  font-size:clamp(46px,11vw,86px);
+  font-weight:900;line-height:.86;letter-spacing:-.03em;
+  margin-bottom:18px;
+}
+h1 em{font-style:italic;font-weight:400;color:var(--brass)}
+.lede{font-size:16px;color:var(--dim);max-width:52ch}
+
+/* form */
+fieldset{border:none;margin-bottom:34px}
+legend{
+  font-family:'Spline Sans Mono',monospace;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--coral);
+  padding-bottom:13px;width:100%;border-bottom:1px solid var(--line);margin-bottom:22px;
+}
+.field{margin-bottom:20px}
+label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.02em;margin-bottom:8px;color:var(--paper)}
+.sub{font-weight:400;color:var(--dim);margin-left:6px}
+input[type=text],input[type=number]{
+  width:100%;background:rgba(255,255,255,.03);
+  border:1px solid var(--line);border-radius:4px;
+  padding:11px 12px;font-family:'Inter',sans-serif;font-size:15px;color:var(--paper);
+  transition:border-color .15s,background .15s;
+}
+input:focus{outline:none;border-color:var(--coral);background:rgba(232,103,76,.06)}
+input::placeholder{color:var(--dimink)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{
+  font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;
+  padding:8px 13px;border:1px solid var(--line);background:transparent;color:var(--dim);
+  cursor:pointer;border-radius:4px;transition:all .13s;
+}
+.seg button:hover{border-color:var(--paper);color:var(--paper)}
+.seg button[aria-pressed=true]{background:var(--coral);border-color:var(--coral);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.build{
+  width:100%;margin-top:6px;background:var(--coral);color:#fff;border:none;
+  padding:17px;font-family:'Fraunces',serif;font-size:18px;font-weight:600;
+  cursor:pointer;border-radius:5px;transition:background .15s,transform .1s;
+}
+.build:hover{background:#d5533a}
+.build:active{transform:translateY(1px)}
+.build:disabled{background:var(--dimink);cursor:wait}
+.build:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.status{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--dim);text-align:center;margin-top:16px;min-height:16px}
+.status.err{color:var(--coral)}
+.spin{display:inline-block;width:11px;height:11px;border:1.5px solid var(--line);border-top-color:var(--coral);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* output */
+#out{display:none;margin-top:50px}
+#out.on{display:block;animation:rise .5s cubic-bezier(.2,.7,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+.manifest-head{
+  display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;
+  border-top:1px solid var(--brass);border-bottom:1px solid var(--line);
+  padding:20px 0;margin-bottom:8px;
+}
+.dest{font-family:'Fraunces',serif;font-size:30px;font-weight:600;letter-spacing:-.02em}
+.meta{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--dim);text-align:right;line-height:1.7}
+.meta b{color:var(--paper);font-weight:600}
+
+/* the shared spine — signature */
+.ledger{position:relative;padding-left:34px}
+.ledger::before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:1px;background:var(--line)}
+
+.sec-label{
+  font-family:'Spline Sans Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--brass);margin:34px 0 16px;position:relative;
+}
+.sec-label::before{content:'';position:absolute;left:-30px;top:6px;width:11px;height:11px;border:2px solid var(--brass);border-radius:50%;background:var(--ink)}
+
+.day{position:relative;padding-bottom:26px}
+.day .node{position:absolute;left:-30px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--ink);border:2px solid var(--sea)}
+.day.rest .node{border-color:var(--line)}
+.daynum{font-family:'Spline Sans Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.daytitle{font-family:'Fraunces',serif;font-size:21px;font-weight:600;letter-spacing:-.01em;margin-bottom:11px}
+.day.rest .daytitle{color:var(--dim);font-style:italic}
+.slot{display:flex;gap:13px;padding:8px 0;border-top:1px solid rgba(58,77,92,.4);font-size:14px}
+.slot .t{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--sea);flex:0 0 56px;padding-top:2px}
+.slot .d b{display:block;color:var(--paper);font-weight:600;margin-bottom:1px}
+.slot .d span{color:var(--dim)}
+
+.note{background:rgba(232,103,76,.08);border-left:2px solid var(--coral);padding:15px 17px;margin-top:14px;font-size:13.5px;color:var(--dim);border-radius:0 4px 4px 0}
+.note b{color:var(--paper)}
+
+/* budget ledger */
+.bud .node{border-color:var(--brass)}
+.bline{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-top:1px solid rgba(58,77,92,.4);gap:14px}
+.bline .k{font-size:14px;color:var(--paper)}
+.bline .k small{display:block;color:var(--dim);font-size:12px;font-weight:400}
+.bline .v{font-family:'Spline Sans Mono',monospace;font-size:15px;font-weight:500;color:var(--paper);white-space:nowrap}
+.bline.total{border-top:1.5px solid var(--brass);margin-top:6px;padding-top:14px}
+.bline.total .k{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
+.bline.total .v{font-size:20px;font-weight:600;color:var(--brass)}
+.perhead{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--dim);text-align:right;margin-top:8px}
+.perhead b{color:var(--brass)}
+
+.hotel{padding:12px 0;border-top:1px solid rgba(58,77,92,.4)}
+.hotel b{font-family:'Fraunces',serif;font-size:16px;font-weight:600}
+.hotel .tr{font-size:12.5px;color:var(--dim);margin-top:2px}
+
+ul.check{list-style:none}
+ul.check li{padding:10px 0 10px 22px;border-top:1px solid rgba(58,77,92,.4);font-size:13.5px;position:relative;color:var(--dim)}
+ul.check li::before{content:'';position:absolute;left:0;top:16px;width:7px;height:7px;border:1.5px solid var(--sea);border-radius:1px}
+ul.check li b{color:var(--paper)}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;padding-left:34px}
+.btn2{background:transparent;border:1px solid var(--paper);color:var(--paper);padding:11px 18px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:4px}
+.btn2:hover{background:var(--paper);color:var(--ink)}
+
+.disc{font-size:11.5px;color:var(--dim);background:rgba(255,255,255,.03);border:1px solid var(--line);padding:13px 15px;border-radius:5px;margin-top:26px;line-height:1.6;display:none}
+.disc.on{display:block}
+.disc b{color:var(--brass)}
+
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--dimink);letter-spacing:.05em}
+
+@media(max-width:600px){.row3{grid-template-columns:1fr}.row{grid-template-columns:1fr}.manifest-head{flex-direction:column;align-items:flex-start}.meta{text-align:left}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="flag">Trip log № 001</div>
+  <h1>Ma<em>ni</em>fest</h1>
+  <p class="lede">Six answers in. A clustered day-by-day plan with real places, an honest budget ledger, and a note on what's likely to go wrong — out the other side.</p>
+</header>
+
+<form id="f">
+  <fieldset>
+    <legend>The passage</legend>
+    <div class="field"><label>City <span class="sub">or region</span></label>
+      <input type="text" id="city" placeholder="Kailua-Kona" required></div>
+    <div class="row">
+      <div class="field"><label>Country</label><input type="text" id="country" placeholder="Hawaii, USA"></div>
+      <div class="field"><label>Nights</label><input type="number" id="nights" min="1" max="21" value="4" required></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>The party</legend>
+    <div class="field"><label>Travelers <span class="sub">including you</span></label>
+      <input type="number" id="people" min="1" max="20" value="2" required></div>
+    <div class="field"><label>Who's aboard</label>
+      <div class="seg" data-name="group">
+        <button type="button" data-v="solo">Solo</button>
+        <button type="button" data-v="couple" aria-pressed="true">Couple</button>
+        <button type="button" data-v="friends">Friends</button>
+        <button type="button" data-v="family with kids">Family with kids</button>
+      </div></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>The plan</legend>
+    <div class="row">
+      <div class="field"><label>Pace</label>
+        <div class="seg" data-name="pace">
+          <button type="button" data-v="packed">Packed</button>
+          <button type="button" data-v="moderate" aria-pressed="true">Moderate</button>
+          <button type="button" data-v="slow">Slow</button>
+        </div></div>
+      <div class="field"><label>Budget tier</label>
+        <div class="seg" data-name="budget">
+          <button type="button" data-v="budget">Lean</button>
+          <button type="button" data-v="mid-range" aria-pressed="true">Mid</button>
+          <button type="button" data-v="splurge">Splurge</button>
+        </div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Hotel</label>
+        <div class="seg" data-name="hotel">
+          <button type="button" data-v="booked">Booked</button>
+          <button type="button" data-v="need suggestions" aria-pressed="true">Suggest</button>
+        </div></div>
+      <div class="field"><label>Rest days</label>
+        <div class="seg" data-name="rest">
+          <button type="button" data-v="auto" aria-pressed="true">Auto</button>
+          <button type="button" data-v="yes">Yes</button>
+          <button type="button" data-v="no">None</button>
+        </div></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>The ledger <span class="sub" style="text-transform:none;letter-spacing:0;font-size:11px">— optional, sharpens the estimate</span></legend>
+    <div class="row3">
+      <div class="field"><label>Currency</label><input type="text" id="currency" placeholder="USD" value="USD"></div>
+      <div class="field"><label>Daily spend <span class="sub">/person</span></label><input type="number" id="dailyRate" placeholder="120"></div>
+      <div class="field"><label>Flights <span class="sub">total</span></label><input type="number" id="flightEst" placeholder="900"></div>
+    </div>
+  </fieldset>
+
+  <button type="submit" class="build" id="go">Chart the trip</button>
+  <div class="status" id="st"></div>
+</form>
+
+<section id="out" aria-live="polite"></section>
+<div class="disc" id="disc"><b>On the record:</b> places and costs are drafted from the model's training, not a live source — opening hours, closures, current prices, and whether a place still exists aren't verified here. Treat the budget as a planning estimate and confirm anything before you book on it.</div>
+
+<footer id="foot" style="display:none">Manifest — a standalone trip log. Runs on your own deploy.</footer>
+</div>
+
+<script>
+const S={group:'couple',pace:'moderate',budget:'mid-range',hotel:'need suggestions',rest:'auto'};
+document.querySelectorAll('.seg').forEach(seg=>{
+  seg.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    seg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true'); S[seg.dataset.name]=b.dataset.v;
+  });
+});
+
+function money(n,cur){
+  if(typeof n!=='number'||isNaN(n)) return '—';
+  try{return new Intl.NumberFormat(undefined,{style:'currency',currency:cur||'USD',maximumFractionDigits:0}).format(n);}
+  catch{return (cur||'')+' '+Math.round(n).toLocaleString();}
+}
+
+document.getElementById('f').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const g=document.getElementById('go'),st=document.getElementById('st');
+  const payload={
+    city:val('city')||'destination',country:val('country'),
+    nights:+val('nights'),people:+val('people'),
+    group:S.group,pace:S.pace,budget:S.budget,hotel:S.hotel,rest:S.rest,
+    currency:val('currency')||'USD',dailyRate:val('dailyRate'),flightEst:val('flightEst')
+  };
+  g.disabled=true;g.textContent='Charting…';
+  st.className='status';st.innerHTML='<span class="spin"></span>drafting itinerary and ledger';
+  try{
+    const r=await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await r.json();
+    if(!r.ok) throw new Error(data.error||('HTTP '+r.status));
+    render(payload,data);st.textContent='';
+  }catch(err){
+    st.className='status err';st.textContent=err.message;
+  }finally{g.disabled=false;g.textContent='Chart the trip';}
+});
+function val(id){return document.getElementById(id).value.trim();}
+
+function render(p,plan){
+  const cur=(plan.budget&&plan.budget.currency)||p.currency;
+  const days=(plan.days||[]).map((d,i)=>{
+    const slots=(d.slots||[]).map(s=>`<div class="slot"><div class="t">${s.time||'—'}</div><div class="d"><b>${esc(s.place)}</b><span>${esc(s.tip)}</span></div></div>`).join('');
+    return `<div class="day${d.rest?' rest':''}"><div class="node"></div><div class="daynum">Day ${String(i+1).padStart(2,'0')}</div><div class="daytitle">${esc(d.title)}</div>${slots}</div>`;
+  }).join('');
+
+  const b=plan.budget||{};
+  const perPerson=b.total&&p.people?b.total/p.people:null;
+  const budgetRows=[
+    ['Lodging',p.hotel==='booked'?'reference rate':(p.nights+' nights'),b.lodging],
+    ['Food',p.people+' × '+p.nights+' days',b.food],
+    ['Activities','paid attractions',b.activities],
+    ['Local transport','whole trip',b.localTransport],
+    ['Flights',p.people+' travelers',b.flights],
+  ].map(([k,sub,v])=>`<div class="bline"><div class="k">${k}<small>${sub}</small></div><div class="v">${money(v,cur)}</div></div>`).join('');
+
+  const hotels=(plan.hotels&&plan.hotels.length)?
+    `<div class="sec-label">Berths</div>`+plan.hotels.map(h=>`<div class="hotel"><b>${esc(h.name)}</b><div class="tr">${esc(h.tradeoff)}</div></div>`).join(''):'';
+  const logi=(plan.logistics&&plan.logistics.length)?
+    `<div class="sec-label">Before you cast off</div><ul class="check">`+plan.logistics.map(l=>`<li>${esc(l)}</li>`).join('')+`</ul>`:'';
+  const honest=plan.honest_note?`<div class="note"><b>The honest read.</b> ${esc(plan.honest_note)}</div>`:'';
+  const budNote=b.budget_note?`<div class="note"><b>Where the ledger bends.</b> ${esc(b.budget_note)}</div>`:'';
+
+  document.getElementById('disc').classList.add('on');
+  document.getElementById('foot').style.display='block';
+  const out=document.getElementById('out');out.className='on';
+  out.innerHTML=`
+    <div class="manifest-head">
+      <div class="dest">${esc(p.city)}${p.country?', '+esc(p.country):''}</div>
+      <div class="meta"><b>${p.nights}</b> nights · <b>${p.people}</b> aboard<br>${esc(p.pace)} · ${esc(p.budget)}</div>
+    </div>
+    <div class="ledger">
+      <div class="sec-label">The days</div>
+      ${days}${honest}
+      <div class="sec-label bud-l" style="margin-top:40px">The ledger</div>
+      <div class="bud">
+        ${budgetRows}
+        <div class="bline total"><div class="k">Total</div><div class="v">${money(b.total,cur)}</div></div>
+        ${perPerson?`<div class="perhead">per person · <b>${money(perPerson,cur)}</b></div>`:''}
+        ${budNote}
+      </div>
+      ${hotels}
+      ${logi}
+    </div>
+    <div class="actions">
+      <button class="btn2" id="cp">Copy as text</button>
+      <button class="btn2" id="pr">Print / save PDF</button>
+    </div>`;
+
+  document.getElementById('cp').onclick=()=>{
+    const t=`${p.city}${p.country?', '+p.country:''} — ${p.nights} nights, ${p.people} travelers, ${p.pace}\n\n`+
+      (plan.days||[]).map((d,i)=>`Day ${i+1} — ${d.title}\n`+(d.slots||[]).map(s=>`  ${s.time}  ${s.place} — ${s.tip}`).join('\n')).join('\n\n')+
+      `\n\nBUDGET (${cur})\n  Lodging ${b.lodging}\n  Food ${b.food}\n  Activities ${b.activities}\n  Local transport ${b.localTransport}\n  Flights ${b.flights}\n  TOTAL ${b.total}`+
+      (plan.honest_note?`\n\nRead: ${plan.honest_note}`:'');
+    navigator.clipboard.writeText(t).then(()=>{const x=document.getElementById('cp');x.textContent='Copied';setTimeout(()=>x.textContent='Copy as text',1500);});
+  };
+  document.getElementById('pr').onclick=()=>window.print();
+  out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+</script>
+</body>
+</html>
