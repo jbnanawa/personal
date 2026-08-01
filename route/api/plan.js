@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2000,
+        max_tokens: 4000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -37,13 +37,24 @@ export default async function handler(req, res) {
 
     const data = await r.json();
     let txt = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-    txt = txt.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+
+    // Strip code fences anywhere, then isolate the JSON object by braces.
+    txt = txt.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const first = txt.indexOf("{");
+    const last = txt.lastIndexOf("}");
+    if (first !== -1 && last !== -1 && last > first) {
+      txt = txt.slice(first, last + 1);
+    }
 
     let plan;
     try {
       plan = JSON.parse(txt);
-    } catch {
-      return res.status(502).json({ error: "Model did not return valid JSON", raw: txt });
+    } catch (e) {
+      // Return a JSON error (not plain text) so the page can show something useful.
+      return res.status(502).json({
+        error: "The model's reply wasn't valid JSON. This is usually a truncated response — try again, and if it repeats, the plan may be too long for the token limit.",
+        detail: String(e),
+      });
     }
 
     return res.status(200).json(plan);
