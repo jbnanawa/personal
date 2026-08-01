@@ -16,19 +16,35 @@ export default async function handler(req, res) {
 
     const prompt = buildPrompt({ city, country, nights, people, group, pace, budget, hotel, rest, currency, dailyRate, flightEst });
 
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": key,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 4000,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+    // Abort the upstream call before the serverless function's own limit is hit,
+    // so a slow model returns a clean JSON error instead of a platform crash page.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+
+    let r;
+    try {
+      r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1800,
+          messages: [{ role: "user", content: prompt }],
+        }),
+        signal: ctrl.signal,
+      });
+    } catch (e) {
+      if (e.name === "AbortError") {
+        return res.status(504).json({ error: "The planner took too long to respond. Try again, or reduce the number of nights." });
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (!r.ok) {
       const detail = await r.text();
