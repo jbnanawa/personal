@@ -29,8 +29,11 @@ export default async function handler(req, res) {
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
+          // Hard cap the output length so generation always finishes inside the
+          // serverless time budget (below). A compact plan uses far less; this
+          // just prevents a runaway response from tripping the 55s timeout.
           model: "claude-sonnet-4-6",
-          max_tokens: 8192,
+          max_tokens: 3600,
           messages: [{ role: "user", content: prompt }],
         }),
         signal: ctrl.signal,
@@ -80,9 +83,9 @@ export default async function handler(req, res) {
 // ---- Prompt construction -------------------------------------------------
 
 const PACE_DENSITY = {
-  relaxed: "1-2 main activities per day",
-  balanced: "2-3 activities per day",
-  full: "as much as possible (4-5 stops/day)",
+  relaxed: "2 stops per day",
+  balanced: "3 stops per day",
+  full: "4 stops per day (max)",
 };
 
 const DOWNTIME_RULE = {
@@ -176,7 +179,13 @@ ALSO produce:
 - logistics: at most 4 short pre-trip items.
 - honest_note: 1-2 sentences naming the plan's real weakness (an overstuffed day, a long transit leg, a stop that may not be worth it). Be candid, not alarming.
 
-KEEP IT COMPACT (must fit one JSON response): "why" and "note" max ~12 words each; no full paragraphs; do not repeat info across fields; favor brevity.
+KEEP IT COMPACT — this must generate quickly and fit one JSON response. Be terse:
+- Stops per day = the pace density above. Never exceed it. Only include the time sections you actually use.
+- "why" max 8 words. "note" max 8 words. "theme"/"cluster_note" one short phrase.
+- heads_up: 0-2 items. "backup" only when weather/closure risk is real, one short sentence, else omit.
+- food exactly 3, hotels at most 2, logistics at most 3.
+- For trips longer than 7 days, keep every day to 2-3 stops and one short line each.
+- No full sentences beyond what's specified; do not repeat info across fields.
 
 Respond with ONLY valid JSON, no markdown fence, no preamble:
 {"destination":"${destName}","days":[{"day":1,"title":"string","theme":"string","activity_time":"string","travel_time":"string","cluster_note":"string","sections":[{"part":"Morning","items":[{"place":"string","why":"string","time":"string","cost":"$","travel_from_prev":"string","note":"string"}]}],"heads_up":["string"],"backup":"string"}],"food":[{"name":"string","dish":"string","area":"string"}],"hotels":[{"name":"string","tradeoff":"string"}],"logistics":["string"],"honest_note":"string"}`;
