@@ -12,9 +12,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { city, country, postal, nights, people, group, pace, budget, hotel, rest, currency, dailyRate, flightEst } = req.body || {};
+    const { city, country, postal, nights, people, group, pace, hotel, rest } = req.body || {};
 
-    const prompt = buildPrompt({ city, country, postal, nights, people, group, pace, budget, hotel, rest, currency, dailyRate, flightEst });
+    const prompt = buildPrompt({ city, country, postal, nights, people, group, pace, hotel, rest });
 
     // Abort the upstream call before the serverless function's own limit is hit,
     // so a slow model returns a clean JSON error instead of a platform crash page.
@@ -80,11 +80,9 @@ export default async function handler(req, res) {
 }
 
 function buildPrompt(p) {
-  const cur = p.currency || "USD";
-  return `You are an expert trip planner AND budget estimator. Build a ${p.nights}-night itinerary for ${p.city}${p.country ? ", " + p.country : ""}.${p.postal ? ` Anchor the itinerary around postal/ZIP code ${p.postal}: favor neighborhoods, stops, and lodging in or near that area, and name the district/area it maps to so the traveler knows where to go.` : ""}
+  return `You are an expert trip planner. Build a ${p.nights}-night itinerary for ${p.city}${p.country ? ", " + p.country : ""}.${p.postal ? ` Anchor the itinerary around postal/ZIP code ${p.postal}: favor neighborhoods, stops, and lodging in or near that area, and name the district/area it maps to so the traveler knows where to go.` : ""}
 
-Travelers: ${p.people} (${p.group}). Pace: ${p.pace}. Budget tier: ${p.budget}. Hotel: ${p.hotel}. Rest days: ${p.rest}.
-Currency: ${cur}. User's rough daily spend guess per person: ${p.dailyRate || "unspecified"}. Flights estimate (total, all travelers): ${p.flightEst || "unspecified"}.
+Travelers: ${p.people} (${p.group}). Pace: ${p.pace}. Hotel: ${p.hotel}. Rest days: ${p.rest}.
 
 ITINERARY RULES:
 - Each day = ONE geographic cluster. Never bounce across the city in a day.
@@ -96,21 +94,11 @@ ITINERARY RULES:
 - Family with kids: fewer stops, more breaks even if pace says packed — note the adjustment.
 - 5+ travelers: note everything needs reservations.
 
-BUDGET RULES (estimate in ${cur}, be realistic for the destination and budget tier):
-- lodging: per-night estimate x ${p.nights} nights. If hotel is "booked", still estimate a typical rate but label it as reference.
-- food: per-person-per-day estimate x ${p.people} x ${p.nights}.
-- activities: rough total for paid attractions across the trip.
-- localTransport: metro/taxi/rental estimate for the whole trip.
-- flights: use the user's estimate if given, else estimate for ${p.people} travelers.
-- Give each as a single number (no ranges, no currency symbol in the number field).
-- total = sum of all five.
-- Add one budget_note: the single biggest cost risk or the line most likely to blow the budget.
-
 FOOD TO TRY:
 - food: the 3 most iconic/worthwhile places to eat across the whole destination — each a REAL named spot with its signature dish and the area/neighborhood to find it. Not chains, not generic. These are destination highlights, distinct from the per-day "eat" picks.
 
 HONESTY:
-- honest_note: 1-2 sentences naming the plan's real weakness (overstuffed day, a stop not worth its time, a deceptively long transit leg, or a budget line that's optimistic).
+- honest_note: 1-2 sentences naming the plan's real weakness (overstuffed day, a stop not worth its time, or a deceptively long transit leg).
 
 KEEP IT COMPACT (important — the whole reply must fit in one short JSON response):
 - Each "tip" is one short phrase, max 12 words. No full sentences.
@@ -119,5 +107,5 @@ KEEP IT COMPACT (important — the whole reply must fit in one short JSON respon
 - Do not repeat information across fields. Favor brevity over completeness.
 
 Respond with ONLY valid JSON, no markdown fence, no preamble:
-{"days":[{"title":"string","rest":boolean,"slots":[{"time":"HH:MM or —","place":"string","tip":"string"}],"eat":{"place":"string","dish":"string"}}],"food":[{"name":"string","dish":"string","area":"string"}],"hotels":[{"name":"string","tradeoff":"string"}],"budget":{"currency":"${cur}","lodging":0,"food":0,"activities":0,"localTransport":0,"flights":0,"total":0,"budget_note":"string"},"logistics":["string"],"honest_note":"string"}`;
+{"days":[{"title":"string","rest":boolean,"slots":[{"time":"HH:MM or —","place":"string","tip":"string"}],"eat":{"place":"string","dish":"string"}}],"food":[{"name":"string","dish":"string","area":"string"}],"hotels":[{"name":"string","tradeoff":"string"}],"logistics":["string"],"honest_note":"string"}`;
 }

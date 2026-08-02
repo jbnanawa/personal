@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f7f4ee">
-<title>Gora Travel — trip planner &amp; budget</title>
+<title>Gora Travel — trip planner</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <style>
 :root{
@@ -18,7 +18,7 @@
   --clay:#c15a34;      /* actions */
   --clay-dk:#a8481f;
   --teal:#2f6f63;      /* go / transit */
-  --gold:#9a7526;      /* money */
+  --gold:#9a7526;      /* section labels */
   --berry:#9c3f5a;     /* food */
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -105,18 +105,6 @@ input::placeholder{color:#b6b0a2}
 .note{background:rgba(193,90,52,.07);border-left:3px solid var(--clay);padding:14px 16px;border-radius:0 8px 8px 0;font-size:13.5px;color:var(--muted);margin-top:12px}
 .note b{color:var(--ink)}
 
-.bud{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 18px}
-.bline{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:12px 0;border-top:1px solid var(--line-soft)}
-.bline:first-child{border-top:none}
-.bline .k{font-size:14px}
-.bline .k small{display:block;color:var(--faint);font-size:12px}
-.bline .v{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:15px;white-space:nowrap}
-.bline.total{border-top:2px solid var(--ink);margin-top:2px}
-.bline.total .k{font-family:Georgia,serif;font-size:18px;font-weight:700}
-.bline.total .v{font-size:19px;font-weight:700;color:var(--gold)}
-.perhead{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;color:var(--muted);text-align:right;margin:8px 2px 4px}
-.perhead b{color:var(--gold)}
-
 .hotel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:10px}
 .hotel b{font-family:Georgia,serif;font-size:16px;font-weight:700}
 .hotel .tr{font-size:13px;color:var(--muted);margin-top:3px}
@@ -157,9 +145,9 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
 <div class="wrap">
 
 <header>
-  <div class="kicker">Trip planner &amp; budget</div>
+  <div class="kicker">Trip planner</div>
   <h1>Gora Travel</h1>
-  <p class="lede">Answer a few questions. Get a clustered day-by-day plan with real places, an honest budget, and a note on what's likely to trip you up.</p>
+  <p class="lede">Answer a few questions. Get a clustered day-by-day plan with real places, nearby food picks, and a note on what's likely to trip you up.</p>
 </header>
 
 <form id="f">
@@ -197,35 +185,18 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
           <button type="button" data-v="moderate" aria-pressed="true">Moderate</button>
           <button type="button" data-v="slow">Slow</button>
         </div></div>
-      <div class="field"><label>Budget</label>
-        <div class="seg" data-name="budget">
-          <button type="button" data-v="budget">Lean</button>
-          <button type="button" data-v="mid-range" aria-pressed="true">Mid</button>
-          <button type="button" data-v="splurge">Splurge</button>
-        </div></div>
-    </div>
-    <div class="row">
       <div class="field"><label>Hotel</label>
         <div class="seg" data-name="hotel">
           <button type="button" data-v="booked">Booked</button>
           <button type="button" data-v="need suggestions" aria-pressed="true">Suggest</button>
         </div></div>
-      <div class="field"><label>Rest days</label>
-        <div class="seg" data-name="rest">
-          <button type="button" data-v="auto" aria-pressed="true">Auto</button>
-          <button type="button" data-v="yes">Yes</button>
-          <button type="button" data-v="no">None</button>
-        </div></div>
     </div>
-  </div>
-
-  <div class="group">
-    <div class="glabel">The ledger <span class="opt">— optional, sharpens the estimate</span></div>
-    <div class="row3">
-      <div class="field"><label>Currency</label><input type="text" id="currency" placeholder="USD" value="USD"></div>
-      <div class="field"><label>Daily <span class="sub">/person</span></label><input type="number" id="dailyRate" placeholder="120"></div>
-      <div class="field"><label>Flights <span class="sub">total</span></label><input type="number" id="flightEst" placeholder="900"></div>
-    </div>
+    <div class="field"><label>Rest days</label>
+      <div class="seg" data-name="rest">
+        <button type="button" data-v="auto" aria-pressed="true">Auto</button>
+        <button type="button" data-v="yes">Yes</button>
+        <button type="button" data-v="no">None</button>
+      </div></div>
   </div>
 
   <button type="submit" class="go" id="go">Chart the trip</button>
@@ -233,13 +204,13 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
 </form>
 
 <section id="out" aria-live="polite"></section>
-<div class="disc" id="disc"><b>Heads up:</b> places and costs are drafted from the model's training, not a live source — hours, closures, current prices, and whether a spot still exists aren't verified. Treat the budget as a planning estimate and confirm before you book on it.</div>
+<div class="disc" id="disc"><b>Heads up:</b> places are drafted from the model's training, not a live source — hours, closures, and whether a spot still exists aren't verified. Confirm before you book on it.</div>
 
 <footer id="foot" style="display:none">Gora Travel · a standalone trip log</footer>
 </div>
 
 <script>
-const S={group:'couple',pace:'moderate',budget:'mid-range',hotel:'need suggestions',rest:'auto'};
+const S={group:'couple',pace:'moderate',hotel:'need suggestions',rest:'auto'};
 document.querySelectorAll('.seg').forEach(seg=>{
   seg.addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b) return;
@@ -250,11 +221,6 @@ document.querySelectorAll('.seg').forEach(seg=>{
 
 function val(id){return document.getElementById(id).value.trim();}
 function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
-function money(n,cur){
-  if(typeof n!=='number'||isNaN(n)) return '—';
-  try{return new Intl.NumberFormat(undefined,{style:'currency',currency:cur||'USD',maximumFractionDigits:0}).format(n);}
-  catch{return (cur||'')+' '+Math.round(n).toLocaleString();}
-}
 
 document.getElementById('f').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -262,11 +228,10 @@ document.getElementById('f').addEventListener('submit',async e=>{
   const payload={
     city:val('city')||'destination',country:val('country'),postal:val('postal'),
     nights:+val('nights'),people:+val('people'),
-    group:S.group,pace:S.pace,budget:S.budget,hotel:S.hotel,rest:S.rest,
-    currency:val('currency')||'USD',dailyRate:val('dailyRate'),flightEst:val('flightEst')
+    group:S.group,pace:S.pace,hotel:S.hotel,rest:S.rest
   };
   g.disabled=true;g.textContent='Charting…';
-  st.className='status';st.innerHTML='<span class="spin"></span>drafting itinerary and ledger…';
+  st.className='status';st.innerHTML='<span class="spin"></span>drafting your itinerary…';
   try{
     const r=await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     // Read as text first so a non-JSON response (e.g. a platform error page)
@@ -286,22 +251,11 @@ document.getElementById('f').addEventListener('submit',async e=>{
 });
 
 function render(p,plan){
-  const cur=(plan.budget&&plan.budget.currency)||p.currency;
   const days=(plan.days||[]).map((d,i)=>{
     const slots=(d.slots||[]).map(s=>`<div class="slot"><div class="t">${esc(s.time)||'—'}</div><div class="d"><b>${esc(s.place)}</b><span>${esc(s.tip)}</span></div></div>`).join('');
     const eat=(d.eat&&d.eat.place)?`<div class="eat"><span class="lab">Eat nearby</span><div class="d"><b>${esc(d.eat.place)}</b>${d.eat.dish?`<span> — ${esc(d.eat.dish)}</span>`:''}</div></div>`:'';
     return `<div class="day${d.rest?' rest':''}"><div class="daynum">Day ${String(i+1).padStart(2,'0')}</div><div class="daytitle">${esc(d.title)}</div>${slots}${eat}</div>`;
   }).join('');
-
-  const b=plan.budget||{};
-  const perPerson=b.total&&p.people?b.total/p.people:null;
-  const budgetRows=[
-    ['Lodging',p.hotel==='booked'?'reference rate':(p.nights+' nights'),b.lodging],
-    ['Food',p.people+' × '+p.nights+' days',b.food],
-    ['Activities','paid attractions',b.activities],
-    ['Local transport','whole trip',b.localTransport],
-    ['Flights',p.people+' travelers',b.flights],
-  ].map(([k,sub,v])=>`<div class="bline"><div class="k">${k}<small>${sub}</small></div><div class="v">${money(v,cur)}</div></div>`).join('');
 
   const food=(plan.food&&plan.food.length)?
     `<div class="sec">Best bites</div>`+plan.food.map(f=>`<div class="eatspot"><b>${esc(f.name)}</b><div class="dish">${esc(f.dish)}</div>${f.area?`<div class="area">${esc(f.area)}</div>`:''}</div>`).join(''):'';
@@ -310,7 +264,6 @@ function render(p,plan){
   const logi=(plan.logistics&&plan.logistics.length)?
     `<div class="sec">Before you go</div><ul class="check">`+plan.logistics.map(l=>`<li>${esc(l)}</li>`).join('')+`</ul>`:'';
   const honest=plan.honest_note?`<div class="note"><b>The honest read.</b> ${esc(plan.honest_note)}</div>`:'';
-  const budNote=b.budget_note?`<div class="note"><b>Where the budget bends.</b> ${esc(b.budget_note)}</div>`:'';
 
   document.getElementById('disc').classList.add('on');
   document.getElementById('foot').style.display='block';
@@ -318,18 +271,11 @@ function render(p,plan){
   out.innerHTML=`
     <div class="dest-head">
       <div class="dest">${esc(p.city)}${p.country?', '+esc(p.country):''}</div>
-      <div class="dest-meta"><b>${p.nights}</b> nights · <b>${p.people}</b> traveling<br>${esc(p.pace)} · ${esc(p.budget)}</div>
+      <div class="dest-meta"><b>${p.nights}</b> nights · <b>${p.people}</b> traveling<br>${esc(p.pace)}</div>
     </div>
     <div class="sec">The days</div>
     ${days}${honest}
     ${food}
-    <div class="sec">The budget</div>
-    <div class="bud">
-      ${budgetRows}
-      <div class="bline total"><div class="k">Total</div><div class="v">${money(b.total,cur)}</div></div>
-    </div>
-    ${perPerson?`<div class="perhead">per person · <b>${money(perPerson,cur)}</b></div>`:''}
-    ${budNote}
     ${hotels}
     ${logi}
     <div class="actions">
@@ -341,7 +287,6 @@ function render(p,plan){
     const t=`${p.city}${p.country?', '+p.country:''} — ${p.nights} nights, ${p.people} travelers, ${p.pace}\n\n`+
       (plan.days||[]).map((d,i)=>`Day ${i+1} — ${d.title}\n`+(d.slots||[]).map(s=>`  ${s.time}  ${s.place} — ${s.tip}`).join('\n')+((d.eat&&d.eat.place)?`\n  Eat: ${d.eat.place}${d.eat.dish?` — ${d.eat.dish}`:''}`:'')).join('\n\n')+
       ((plan.food&&plan.food.length)?`\n\nBEST BITES\n`+plan.food.map(f=>`  ${f.name} — ${f.dish}${f.area?` (${f.area})`:''}`).join('\n'):'')+
-      `\n\nBUDGET (${cur})\n  Lodging ${b.lodging}\n  Food ${b.food}\n  Activities ${b.activities}\n  Local transport ${b.localTransport}\n  Flights ${b.flights}\n  TOTAL ${b.total}`+
       (plan.honest_note?`\n\nRead: ${plan.honest_note}`:'');
     navigator.clipboard.writeText(t).then(()=>{const x=document.getElementById('cp');x.textContent='Copied';setTimeout(()=>x.textContent='Copy as text',1500);});
   };

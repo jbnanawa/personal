@@ -1,7 +1,7 @@
 {
   "name": "Gora Travel — Trip Planner",
   "short_name": "Gora Travel",
-  "description": "A standalone trip planner and budget ledger.",
+  "description": "A standalone trip planner.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f2231",
