@@ -1,6 +1,6 @@
 # Gora Travel — standalone trip planner
 
-A trip planner you own. Answer a few questions, get a clustered day-by-day itinerary with real places, nearby food picks, and an honest note on what's likely to go wrong. Runs as a static page plus one small serverless function that holds your API key.
+A trip planner you own — built to reduce backtracking and catch travel problems before they disrupt your trip. Tell Gora your destination, dates, group, pace and interests; get a clustered day-by-day itinerary with time-of-day sections, nearby food, "Gora Heads-Up" warnings (reservations, parking, weather), and backup plans. Runs as a static page plus small serverless functions that hold your API key.
 
 Share it with anyone by sending the URL. Add it to a phone home screen (it's installable) and it opens like an app.
 
