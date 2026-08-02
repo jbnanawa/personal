@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     // Abort the upstream call before the serverless function's own limit is hit,
     // so a slow model returns a clean JSON error instead of a platform crash page.
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 25000);
+    const timer = setTimeout(() => ctrl.abort(), 55000);
 
     let r;
     try {
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
-          max_tokens: 1800,
+          max_tokens: 2200,
           messages: [{ role: "user", content: prompt }],
         }),
         signal: ctrl.signal,
