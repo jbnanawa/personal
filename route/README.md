@@ -14,13 +14,16 @@ route/
 │   ├── index.html            the whole front-end (no build step)
 │   └── manifest.webmanifest  makes it installable on phones
 ├── api/
-│   └── plan.js               serverless function — holds your key, calls Anthropic
+│   ├── plan.js               serverless function — holds your key, calls Anthropic
+│   └── places.js             serverless function — city/postal autocomplete (keyless)
 ├── vercel.json               routing + function config
 ├── package.json
 └── README.md
 ```
 
-There is **no build step** and **no framework**. It's plain HTML/CSS/JS plus one function. That's deliberate — the least thing that can possibly work standalone.
+There is **no build step** and **no framework**. It's plain HTML/CSS/JS plus two small functions. That's deliberate — the least thing that can possibly work standalone.
+
+The City and Postal fields have predictive autocomplete: as you type, `api/places.js` proxies an [OpenStreetMap-based geocoder (Photon)](https://photon.komoot.io) for suggestions — no API key or billing needed. Picking a city also fills in the Country. If the lookup is unreachable, the fields stay plain text inputs, so you can always just type.
 
 ---
 

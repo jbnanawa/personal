@@ -56,6 +56,16 @@ input::placeholder{color:#b6b0a2}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 
+/* autocomplete */
+.ac{position:relative}
+.ac-menu{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 34px -14px rgba(60,50,30,.35);overflow-y:auto;max-height:274px;display:none}
+.ac-menu.on{display:block}
+.ac-item{padding:9px 13px;cursor:pointer;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink)}
+.ac-item:first-child{border-top:none}
+.ac-item .sub{display:block;font-size:12px;color:var(--faint);margin-top:1px}
+.ac-item.active,.ac-item:hover{background:rgba(193,90,52,.09)}
+.ac-note{padding:9px 13px;font-size:12px;color:var(--faint);font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+
 .seg{display:flex;flex-wrap:wrap;gap:7px}
 .seg button{
   font-family:inherit;font-size:13px;font-weight:500;padding:9px 14px;
@@ -154,13 +164,13 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
   <div class="group">
     <div class="glabel">Where &amp; how long</div>
     <div class="field"><label>City <span class="sub">or region</span></label>
-      <input type="text" id="city" placeholder="Kailua-Kona" required></div>
+      <div class="ac"><input type="text" id="city" placeholder="Kailua-Kona" autocomplete="off" required></div></div>
     <div class="row">
       <div class="field"><label>Country</label><input type="text" id="country" placeholder="Hawaii, USA"></div>
       <div class="field"><label>Nights</label><input type="number" id="nights" min="1" max="21" value="4" required></div>
     </div>
     <div class="field"><label>Postal code <span class="sub">optional — narrows the area</span></label>
-      <input type="text" id="postal" placeholder="96740"></div>
+      <div class="ac"><input type="text" id="postal" placeholder="96740" autocomplete="off"></div></div>
   </div>
 
   <div class="group">
@@ -221,6 +231,80 @@ document.querySelectorAll('.seg').forEach(seg=>{
 
 function val(id){return document.getElementById(id).value.trim();}
 function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+/* ---- predictive place/postal autocomplete (keyless, via /api/places) ---- */
+function attachAC(input,opts){
+  const wrap=input.parentElement;                 // the .ac container
+  const menu=document.createElement('ul');
+  menu.className='ac-menu';menu.setAttribute('role','listbox');
+  wrap.appendChild(menu);
+  input.setAttribute('role','combobox');
+  input.setAttribute('aria-autocomplete','list');
+  input.setAttribute('aria-expanded','false');
+  let items=[],active=-1,seq=0,timer=null,picking=false;
+
+  const open=()=>{if(menu.children.length){menu.classList.add('on');input.setAttribute('aria-expanded','true');}};
+  const close=()=>{menu.classList.remove('on');input.setAttribute('aria-expanded','false');active=-1;};
+  function draw(){
+    menu.innerHTML='';
+    items.forEach((it,i)=>{
+      const li=document.createElement('li');
+      li.className='ac-item';li.setAttribute('role','option');
+      li.innerHTML=esc(it.label)+(it.sub?`<span class="sub">${esc(it.sub)}</span>`:'');
+      li.addEventListener('mousedown',e=>{e.preventDefault();choose(i);}); // mousedown beats blur
+      menu.appendChild(li);
+    });
+    active=-1;open();
+  }
+  function setActive(i){
+    active=(i+items.length)%items.length;
+    [...menu.children].forEach((li,idx)=>li.classList.toggle('active',idx===active));
+  }
+  function choose(i){
+    const it=items[i];if(!it)return;
+    picking=true;input.value=it.value;close();items=[];
+    if(opts.onPick)opts.onPick(it);
+    setTimeout(()=>picking=false,0);
+  }
+  async function query(q){
+    const mySeq=++seq;
+    const params=new URLSearchParams({q,kind:opts.kind});
+    const bias=opts.getBias&&opts.getBias();
+    if(bias&&isFinite(bias.lat)&&isFinite(bias.lon)){params.set('lat',bias.lat);params.set('lon',bias.lon);}
+    try{
+      const r=await fetch('/api/places?'+params.toString());
+      if(mySeq!==seq)return;                        // superseded by a newer keystroke
+      const data=await r.json();
+      items=(data&&data.results)||[];
+      items.length?draw():close();
+    }catch{ if(mySeq===seq){items=[];close();} }    // offline / no server: fail quietly
+  }
+  input.addEventListener('input',()=>{
+    if(picking)return;
+    const q=input.value.trim();
+    clearTimeout(timer);
+    if(q.length<2){items=[];close();return;}
+    timer=setTimeout(()=>{if(input.value.trim()===q)query(q);},250);
+  });
+  input.addEventListener('keydown',e=>{
+    if(!menu.classList.contains('on'))return;
+    if(e.key==='ArrowDown'){e.preventDefault();setActive(active+1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();setActive(active-1);}
+    else if(e.key==='Enter'&&active>=0){e.preventDefault();choose(active);}
+    else if(e.key==='Escape'){close();}
+  });
+  input.addEventListener('blur',()=>setTimeout(close,120));
+  input.addEventListener('focus',()=>{if(items.length)open();});
+}
+
+let cityGeo=null;   // coords of the chosen city, to bias postal suggestions
+attachAC(document.getElementById('city'),{kind:'city',onPick:it=>{
+  if(it.country)document.getElementById('country').value=it.country;
+  cityGeo=(isFinite(it.lat)&&isFinite(it.lon))?{lat:it.lat,lon:it.lon}:null;
+}});
+attachAC(document.getElementById('postal'),{kind:'postal',getBias:()=>cityGeo});
+// Clearing/retyping the city drops the stale coordinate bias.
+document.getElementById('city').addEventListener('input',()=>{cityGeo=null;});
 
 document.getElementById('f').addEventListener('submit',async e=>{
   e.preventDefault();
