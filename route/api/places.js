@@ -31,9 +31,17 @@ export default async function handler(req, res) {
   }
 
   // For city search, restrict to populated places so we don't surface
-  // shops/streets. Postal search stays unfiltered so postcodes come through.
+  // shops/streets. "destination" is broader (islands, regions, landmarks are
+  // valid trip targets). Postal search stays unfiltered so postcodes come through.
   if (kind === "city") {
     for (const tag of ["place:city", "place:town", "place:village"]) {
+      url.searchParams.append("osm_tag", tag);
+    }
+  } else if (kind === "destination") {
+    for (const tag of [
+      "place:city", "place:town", "place:village", "place:island",
+      "place:region", "place:archipelago", "tourism:attraction",
+    ]) {
       url.searchParams.append("osm_tag", tag);
     }
   }
@@ -82,11 +90,15 @@ export function shape(data, kind) {
       seen.add(key);
       out.push(item);
     } else {
-      // City / place.
+      // City / place / destination.
       const name = p.name || p.city;
       if (!name) continue;
       const sub = [region, country].filter(Boolean).join(", ");
-      const item = { value: name, label: name, sub, country, lat, lon };
+      // Full display name, e.g. "Kailua-Kona, Hawaii, United States".
+      const displayName = [name, region, country].filter(Boolean).join(", ");
+      // Stable-ish place id from OSM identity, when present.
+      const placeId = (p.osm_type && p.osm_id) ? `${p.osm_type}${p.osm_id}` : "";
+      const item = { value: name, label: name, sub, displayName, name, region, country, lat, lon, placeId };
       const key = "c:" + name + "|" + sub;
       if (seen.has(key)) continue;
       seen.add(key);
