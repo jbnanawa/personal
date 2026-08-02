@@ -174,7 +174,7 @@ FOR EACH DAY, produce:
 - backup: one short backup plan when weather/closure risk is real (e.g. swap a beach for an indoor market); omit if not needed.
 
 ALSO produce:
-- food: the 3 most iconic/worthwhile places to eat across the whole destination (real named spot, signature dish, area). Respect any food needs above.
+- food: 6 worthwhile places to eat across the whole destination — make them varied: a couple of iconic/sit-down spots, a casual or street-food option, and a local snack/coffee/dessert spot. Each a REAL named place with its signature dish and area. Respect any food needs above.
 - hotels: at most 2 areas/stays with a one-line tradeoff each.
 - logistics: at most 4 short pre-trip items.
 - honest_note: 1-2 sentences naming the plan's real weakness (an overstuffed day, a long transit leg, a stop that may not be worth it). Be candid, not alarming.
@@ -183,7 +183,7 @@ KEEP IT COMPACT — this must generate quickly and fit one JSON response. Be ter
 - Stops per day = the pace density above. Never exceed it. Only include the time sections you actually use.
 - "why" max 8 words. "note" max 8 words. "theme"/"cluster_note" one short phrase.
 - heads_up: 0-2 items. "backup" only when weather/closure risk is real, one short sentence, else omit.
-- food exactly 3, hotels at most 2, logistics at most 3.
+- food: 6 entries (keep each terse — name, dish, area only). hotels at most 2, logistics at most 3.
 - For trips longer than 7 days, keep every day to 2-3 stops and one short line each.
 - No full sentences beyond what's specified; do not repeat info across fields.
 
