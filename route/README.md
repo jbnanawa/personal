@@ -1,4 +1,4 @@
-# Manifest — standalone trip planner & budget ledger
+# Gora Travel — standalone trip planner & budget ledger
 
 A trip planner you own. Fill in six fields, get a clustered day-by-day itinerary with real places, a budget ledger, and an honest note on what's likely to go wrong. Runs as a static page plus one small serverless function that holds your API key.
 
@@ -42,7 +42,7 @@ You need: a free [GitHub](https://github.com) account, a free [Vercel](https://v
 > The API key bills through the Anthropic **Console**, separate from any Claude.ai subscription. A personal planner costs pennies per plan.
 
 ### 1. Put this folder on GitHub
-- Create a new repository (e.g. `manifest`).
+- Create a new repository (e.g. `gora-travel`).
 - Upload the contents of the `route/` folder (drag-and-drop works in GitHub's web UI: **Add file → Upload files**).
 
 ### 2. Import into Vercel
@@ -56,7 +56,7 @@ You need: a free [GitHub](https://github.com) account, a free [Vercel](https://v
 - Save, then **Deployments → ⋯ → Redeploy** so the key takes effect.
 
 ### 4. Open it
-- Vercel gives you a URL like `manifest-xxxx.vercel.app`. That's your app.
+- Vercel gives you a URL like `gora-travel-xxxx.vercel.app`. That's your app.
 - On a phone: open the URL, **Share → Add to Home Screen**. It installs.
 
 ---
