@@ -1,6 +1,6 @@
-# Manifest — standalone trip planner & budget ledger
+# Gora Travel — standalone trip planner
 
-A trip planner you own. Fill in six fields, get a clustered day-by-day itinerary with real places, a budget ledger, and an honest note on what's likely to go wrong. Runs as a static page plus one small serverless function that holds your API key.
+A trip planner you own. Answer a few questions, get a clustered day-by-day itinerary with real places, nearby food picks, and an honest note on what's likely to go wrong. Runs as a static page plus one small serverless function that holds your API key.
 
 Share it with anyone by sending the URL. Add it to a phone home screen (it's installable) and it opens like an app.
 
@@ -14,13 +14,16 @@ route/
 │   ├── index.html            the whole front-end (no build step)
 │   └── manifest.webmanifest  makes it installable on phones
 ├── api/
-│   └── plan.js               serverless function — holds your key, calls Anthropic
+│   ├── plan.js               serverless function — holds your key, calls Anthropic
+│   └── places.js             serverless function — city/postal autocomplete (keyless)
 ├── vercel.json               routing + function config
 ├── package.json
 └── README.md
 ```
 
-There is **no build step** and **no framework**. It's plain HTML/CSS/JS plus one function. That's deliberate — the least thing that can possibly work standalone.
+There is **no build step** and **no framework**. It's plain HTML/CSS/JS plus two small functions. That's deliberate — the least thing that can possibly work standalone.
+
+The City and Postal fields have predictive autocomplete: as you type, `api/places.js` proxies an [OpenStreetMap-based geocoder (Photon)](https://photon.komoot.io) for suggestions — no API key or billing needed. Picking a city also fills in the Country. If the lookup is unreachable, the fields stay plain text inputs, so you can always just type.
 
 ---
 
@@ -42,7 +45,7 @@ You need: a free [GitHub](https://github.com) account, a free [Vercel](https://v
 > The API key bills through the Anthropic **Console**, separate from any Claude.ai subscription. A personal planner costs pennies per plan.
 
 ### 1. Put this folder on GitHub
-- Create a new repository (e.g. `manifest`).
+- Create a new repository (e.g. `gora-travel`).
 - Upload the contents of the `route/` folder (drag-and-drop works in GitHub's web UI: **Add file → Upload files**).
 
 ### 2. Import into Vercel
@@ -56,7 +59,7 @@ You need: a free [GitHub](https://github.com) account, a free [Vercel](https://v
 - Save, then **Deployments → ⋯ → Redeploy** so the key takes effect.
 
 ### 4. Open it
-- Vercel gives you a URL like `manifest-xxxx.vercel.app`. That's your app.
+- Vercel gives you a URL like `gora-travel-xxxx.vercel.app`. That's your app.
 - On a phone: open the URL, **Share → Add to Home Screen**. It installs.
 
 ---
@@ -76,9 +79,8 @@ Opening `index.html` directly as a file will **not** work — the `/api/plan` ca
 
 ## The honest limits
 
-- **Places and prices come from the model's training, not a live source.** Hours, closures, current rates, and whether a place still exists are not verified. It's a strong first draft — confirm before you book.
-- **The budget is an estimate.** Giving it your own daily-spend and flight numbers sharpens it a lot; leaving them blank makes it guess.
-- **It only plans and budgets.** It does not read your email, touch your calendar, or track bookings — that half runs through Claude with your connectors, on demand.
+- **Places come from the model's training, not a live source.** Hours, closures, and whether a place still exists are not verified. It's a strong first draft — confirm before you book.
+- **It only plans.** It does not read your email, touch your calendar, or track bookings — that half runs through Claude with your connectors, on demand.
 
 ## Closing the verification gap later
 
@@ -89,5 +91,5 @@ The one seam worth extending is live place data. Drop a Google Places call into 
 ## Changing the look or rules
 
 - **Design** lives entirely in the `<style>` block of `index.html`.
-- **Planning and budget rules** live in the `buildPrompt()` function in `api/plan.js` — edit the prompt to change density, add categories, change the JSON shape (update the render in `index.html` to match).
+- **Planning rules** live in the `buildPrompt()` function in `api/plan.js` — edit the prompt to change density, add categories, change the JSON shape (update the render in `index.html` to match).
 - **Model** is set in `api/plan.js` (`model: "claude-sonnet-4-6"`).

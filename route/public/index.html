@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f7f4ee">
-<title>Wayfare — trip planner &amp; budget</title>
+<title>Gora Travel — trip planner</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <style>
 :root{
@@ -18,7 +18,8 @@
   --clay:#c15a34;      /* actions */
   --clay-dk:#a8481f;
   --teal:#2f6f63;      /* go / transit */
-  --gold:#9a7526;      /* money */
+  --gold:#9a7526;      /* section labels */
+  --berry:#9c3f5a;     /* food */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -54,6 +55,16 @@ input:focus{outline:none;border-color:var(--clay);box-shadow:0 0 0 3px rgba(193,
 input::placeholder{color:#b6b0a2}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* autocomplete */
+.ac{position:relative}
+.ac-menu{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 34px -14px rgba(60,50,30,.35);overflow-y:auto;max-height:274px;display:none}
+.ac-menu.on{display:block}
+.ac-item{padding:9px 13px;cursor:pointer;border-top:1px solid var(--line-soft);font-size:14px;color:var(--ink)}
+.ac-item:first-child{border-top:none}
+.ac-item .sub{display:block;font-size:12px;color:var(--faint);margin-top:1px}
+.ac-item.active,.ac-item:hover{background:rgba(193,90,52,.09)}
+.ac-note{padding:9px 13px;font-size:12px;color:var(--faint);font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
 
 .seg{display:flex;flex-wrap:wrap;gap:7px}
 .seg button{
@@ -104,21 +115,21 @@ input::placeholder{color:#b6b0a2}
 .note{background:rgba(193,90,52,.07);border-left:3px solid var(--clay);padding:14px 16px;border-radius:0 8px 8px 0;font-size:13.5px;color:var(--muted);margin-top:12px}
 .note b{color:var(--ink)}
 
-.bud{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 18px}
-.bline{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:12px 0;border-top:1px solid var(--line-soft)}
-.bline:first-child{border-top:none}
-.bline .k{font-size:14px}
-.bline .k small{display:block;color:var(--faint);font-size:12px}
-.bline .v{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:15px;white-space:nowrap}
-.bline.total{border-top:2px solid var(--ink);margin-top:2px}
-.bline.total .k{font-family:Georgia,serif;font-size:18px;font-weight:700}
-.bline.total .v{font-size:19px;font-weight:700;color:var(--gold)}
-.perhead{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:12px;color:var(--muted);text-align:right;margin:8px 2px 4px}
-.perhead b{color:var(--gold)}
-
 .hotel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:10px}
 .hotel b{font-family:Georgia,serif;font-size:16px;font-weight:700}
 .hotel .tr{font-size:13px;color:var(--muted);margin-top:3px}
+
+/* per-day food pick */
+.eat{display:flex;gap:10px;align-items:baseline;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);font-size:13.5px}
+.eat .lab{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--berry);flex:0 0 auto;padding-top:2px}
+.eat .d b{font-weight:600}
+.eat .d span{color:var(--muted)}
+
+/* best-bites cards */
+.eatspot{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:10px;border-left:3px solid var(--berry)}
+.eatspot b{font-family:Georgia,serif;font-size:16px;font-weight:700}
+.eatspot .dish{font-size:13.5px;color:var(--ink);margin-top:3px}
+.eatspot .area{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11px;color:var(--faint);letter-spacing:.04em;margin-top:5px}
 
 ul.check{list-style:none}
 ul.check li{padding:10px 0 10px 24px;border-top:1px solid var(--line-soft);font-size:13.5px;color:var(--muted);position:relative}
@@ -144,20 +155,22 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
 <div class="wrap">
 
 <header>
-  <div class="kicker">Trip planner &amp; budget</div>
-  <h1>Wayfare</h1>
-  <p class="lede">Answer a few questions. Get a clustered day-by-day plan with real places, an honest budget, and a note on what's likely to trip you up.</p>
+  <div class="kicker">Trip planner</div>
+  <h1>Gora Travel</h1>
+  <p class="lede">Answer a few questions. Get a clustered day-by-day plan with real places, nearby food picks, and a note on what's likely to trip you up.</p>
 </header>
 
 <form id="f">
   <div class="group">
     <div class="glabel">Where &amp; how long</div>
     <div class="field"><label>City <span class="sub">or region</span></label>
-      <input type="text" id="city" placeholder="Kailua-Kona" required></div>
+      <div class="ac"><input type="text" id="city" placeholder="Kailua-Kona" autocomplete="off" required></div></div>
     <div class="row">
       <div class="field"><label>Country</label><input type="text" id="country" placeholder="Hawaii, USA"></div>
       <div class="field"><label>Nights</label><input type="number" id="nights" min="1" max="21" value="4" required></div>
     </div>
+    <div class="field"><label>Postal code <span class="sub">optional — narrows the area</span></label>
+      <div class="ac"><input type="text" id="postal" placeholder="96740" autocomplete="off"></div></div>
   </div>
 
   <div class="group">
@@ -182,35 +195,18 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
           <button type="button" data-v="moderate" aria-pressed="true">Moderate</button>
           <button type="button" data-v="slow">Slow</button>
         </div></div>
-      <div class="field"><label>Budget</label>
-        <div class="seg" data-name="budget">
-          <button type="button" data-v="budget">Lean</button>
-          <button type="button" data-v="mid-range" aria-pressed="true">Mid</button>
-          <button type="button" data-v="splurge">Splurge</button>
-        </div></div>
-    </div>
-    <div class="row">
       <div class="field"><label>Hotel</label>
         <div class="seg" data-name="hotel">
           <button type="button" data-v="booked">Booked</button>
           <button type="button" data-v="need suggestions" aria-pressed="true">Suggest</button>
         </div></div>
-      <div class="field"><label>Rest days</label>
-        <div class="seg" data-name="rest">
-          <button type="button" data-v="auto" aria-pressed="true">Auto</button>
-          <button type="button" data-v="yes">Yes</button>
-          <button type="button" data-v="no">None</button>
-        </div></div>
     </div>
-  </div>
-
-  <div class="group">
-    <div class="glabel">The ledger <span class="opt">— optional, sharpens the estimate</span></div>
-    <div class="row3">
-      <div class="field"><label>Currency</label><input type="text" id="currency" placeholder="USD" value="USD"></div>
-      <div class="field"><label>Daily <span class="sub">/person</span></label><input type="number" id="dailyRate" placeholder="120"></div>
-      <div class="field"><label>Flights <span class="sub">total</span></label><input type="number" id="flightEst" placeholder="900"></div>
-    </div>
+    <div class="field"><label>Rest days</label>
+      <div class="seg" data-name="rest">
+        <button type="button" data-v="auto" aria-pressed="true">Auto</button>
+        <button type="button" data-v="yes">Yes</button>
+        <button type="button" data-v="no">None</button>
+      </div></div>
   </div>
 
   <button type="submit" class="go" id="go">Chart the trip</button>
@@ -218,13 +214,13 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
 </form>
 
 <section id="out" aria-live="polite"></section>
-<div class="disc" id="disc"><b>Heads up:</b> places and costs are drafted from the model's training, not a live source — hours, closures, current prices, and whether a spot still exists aren't verified. Treat the budget as a planning estimate and confirm before you book on it.</div>
+<div class="disc" id="disc"><b>Heads up:</b> places are drafted from the model's training, not a live source — hours, closures, and whether a spot still exists aren't verified. Confirm before you book on it.</div>
 
-<footer id="foot" style="display:none">Wayfare · a standalone trip log</footer>
+<footer id="foot" style="display:none">Gora Travel · a standalone trip log</footer>
 </div>
 
 <script>
-const S={group:'couple',pace:'moderate',budget:'mid-range',hotel:'need suggestions',rest:'auto'};
+const S={group:'couple',pace:'moderate',hotel:'need suggestions',rest:'auto'};
 document.querySelectorAll('.seg').forEach(seg=>{
   seg.addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b) return;
@@ -235,23 +231,91 @@ document.querySelectorAll('.seg').forEach(seg=>{
 
 function val(id){return document.getElementById(id).value.trim();}
 function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
-function money(n,cur){
-  if(typeof n!=='number'||isNaN(n)) return '—';
-  try{return new Intl.NumberFormat(undefined,{style:'currency',currency:cur||'USD',maximumFractionDigits:0}).format(n);}
-  catch{return (cur||'')+' '+Math.round(n).toLocaleString();}
+
+/* ---- predictive place/postal autocomplete (keyless, via /api/places) ---- */
+function attachAC(input,opts){
+  const wrap=input.parentElement;                 // the .ac container
+  const menu=document.createElement('ul');
+  menu.className='ac-menu';menu.setAttribute('role','listbox');
+  wrap.appendChild(menu);
+  input.setAttribute('role','combobox');
+  input.setAttribute('aria-autocomplete','list');
+  input.setAttribute('aria-expanded','false');
+  let items=[],active=-1,seq=0,timer=null,picking=false;
+
+  const open=()=>{if(menu.children.length){menu.classList.add('on');input.setAttribute('aria-expanded','true');}};
+  const close=()=>{menu.classList.remove('on');input.setAttribute('aria-expanded','false');active=-1;};
+  function draw(){
+    menu.innerHTML='';
+    items.forEach((it,i)=>{
+      const li=document.createElement('li');
+      li.className='ac-item';li.setAttribute('role','option');
+      li.innerHTML=esc(it.label)+(it.sub?`<span class="sub">${esc(it.sub)}</span>`:'');
+      li.addEventListener('mousedown',e=>{e.preventDefault();choose(i);}); // mousedown beats blur
+      menu.appendChild(li);
+    });
+    active=-1;open();
+  }
+  function setActive(i){
+    active=(i+items.length)%items.length;
+    [...menu.children].forEach((li,idx)=>li.classList.toggle('active',idx===active));
+  }
+  function choose(i){
+    const it=items[i];if(!it)return;
+    picking=true;input.value=it.value;close();items=[];
+    if(opts.onPick)opts.onPick(it);
+    setTimeout(()=>picking=false,0);
+  }
+  async function query(q){
+    const mySeq=++seq;
+    const params=new URLSearchParams({q,kind:opts.kind});
+    const bias=opts.getBias&&opts.getBias();
+    if(bias&&isFinite(bias.lat)&&isFinite(bias.lon)){params.set('lat',bias.lat);params.set('lon',bias.lon);}
+    try{
+      const r=await fetch('/api/places?'+params.toString());
+      if(mySeq!==seq)return;                        // superseded by a newer keystroke
+      const data=await r.json();
+      items=(data&&data.results)||[];
+      items.length?draw():close();
+    }catch{ if(mySeq===seq){items=[];close();} }    // offline / no server: fail quietly
+  }
+  input.addEventListener('input',()=>{
+    if(picking)return;
+    const q=input.value.trim();
+    clearTimeout(timer);
+    if(q.length<2){items=[];close();return;}
+    timer=setTimeout(()=>{if(input.value.trim()===q)query(q);},250);
+  });
+  input.addEventListener('keydown',e=>{
+    if(!menu.classList.contains('on'))return;
+    if(e.key==='ArrowDown'){e.preventDefault();setActive(active+1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();setActive(active-1);}
+    else if(e.key==='Enter'&&active>=0){e.preventDefault();choose(active);}
+    else if(e.key==='Escape'){close();}
+  });
+  input.addEventListener('blur',()=>setTimeout(close,120));
+  input.addEventListener('focus',()=>{if(items.length)open();});
 }
+
+let cityGeo=null;   // coords of the chosen city, to bias postal suggestions
+attachAC(document.getElementById('city'),{kind:'city',onPick:it=>{
+  if(it.country)document.getElementById('country').value=it.country;
+  cityGeo=(isFinite(it.lat)&&isFinite(it.lon))?{lat:it.lat,lon:it.lon}:null;
+}});
+attachAC(document.getElementById('postal'),{kind:'postal',getBias:()=>cityGeo});
+// Clearing/retyping the city drops the stale coordinate bias.
+document.getElementById('city').addEventListener('input',()=>{cityGeo=null;});
 
 document.getElementById('f').addEventListener('submit',async e=>{
   e.preventDefault();
   const g=document.getElementById('go'),st=document.getElementById('st');
   const payload={
-    city:val('city')||'destination',country:val('country'),
+    city:val('city')||'destination',country:val('country'),postal:val('postal'),
     nights:+val('nights'),people:+val('people'),
-    group:S.group,pace:S.pace,budget:S.budget,hotel:S.hotel,rest:S.rest,
-    currency:val('currency')||'USD',dailyRate:val('dailyRate'),flightEst:val('flightEst')
+    group:S.group,pace:S.pace,hotel:S.hotel,rest:S.rest
   };
   g.disabled=true;g.textContent='Charting…';
-  st.className='status';st.innerHTML='<span class="spin"></span>drafting itinerary and ledger…';
+  st.className='status';st.innerHTML='<span class="spin"></span>drafting your itinerary…';
   try{
     const r=await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     // Read as text first so a non-JSON response (e.g. a platform error page)
@@ -271,28 +335,19 @@ document.getElementById('f').addEventListener('submit',async e=>{
 });
 
 function render(p,plan){
-  const cur=(plan.budget&&plan.budget.currency)||p.currency;
   const days=(plan.days||[]).map((d,i)=>{
     const slots=(d.slots||[]).map(s=>`<div class="slot"><div class="t">${esc(s.time)||'—'}</div><div class="d"><b>${esc(s.place)}</b><span>${esc(s.tip)}</span></div></div>`).join('');
-    return `<div class="day${d.rest?' rest':''}"><div class="daynum">Day ${String(i+1).padStart(2,'0')}</div><div class="daytitle">${esc(d.title)}</div>${slots}</div>`;
+    const eat=(d.eat&&d.eat.place)?`<div class="eat"><span class="lab">Eat nearby</span><div class="d"><b>${esc(d.eat.place)}</b>${d.eat.dish?`<span> — ${esc(d.eat.dish)}</span>`:''}</div></div>`:'';
+    return `<div class="day${d.rest?' rest':''}"><div class="daynum">Day ${String(i+1).padStart(2,'0')}</div><div class="daytitle">${esc(d.title)}</div>${slots}${eat}</div>`;
   }).join('');
 
-  const b=plan.budget||{};
-  const perPerson=b.total&&p.people?b.total/p.people:null;
-  const budgetRows=[
-    ['Lodging',p.hotel==='booked'?'reference rate':(p.nights+' nights'),b.lodging],
-    ['Food',p.people+' × '+p.nights+' days',b.food],
-    ['Activities','paid attractions',b.activities],
-    ['Local transport','whole trip',b.localTransport],
-    ['Flights',p.people+' travelers',b.flights],
-  ].map(([k,sub,v])=>`<div class="bline"><div class="k">${k}<small>${sub}</small></div><div class="v">${money(v,cur)}</div></div>`).join('');
-
+  const food=(plan.food&&plan.food.length)?
+    `<div class="sec">Best bites</div>`+plan.food.map(f=>`<div class="eatspot"><b>${esc(f.name)}</b><div class="dish">${esc(f.dish)}</div>${f.area?`<div class="area">${esc(f.area)}</div>`:''}</div>`).join(''):'';
   const hotels=(plan.hotels&&plan.hotels.length)?
     `<div class="sec">Where to stay</div>`+plan.hotels.map(h=>`<div class="hotel"><b>${esc(h.name)}</b><div class="tr">${esc(h.tradeoff)}</div></div>`).join(''):'';
   const logi=(plan.logistics&&plan.logistics.length)?
     `<div class="sec">Before you go</div><ul class="check">`+plan.logistics.map(l=>`<li>${esc(l)}</li>`).join('')+`</ul>`:'';
   const honest=plan.honest_note?`<div class="note"><b>The honest read.</b> ${esc(plan.honest_note)}</div>`:'';
-  const budNote=b.budget_note?`<div class="note"><b>Where the budget bends.</b> ${esc(b.budget_note)}</div>`:'';
 
   document.getElementById('disc').classList.add('on');
   document.getElementById('foot').style.display='block';
@@ -300,17 +355,11 @@ function render(p,plan){
   out.innerHTML=`
     <div class="dest-head">
       <div class="dest">${esc(p.city)}${p.country?', '+esc(p.country):''}</div>
-      <div class="dest-meta"><b>${p.nights}</b> nights · <b>${p.people}</b> traveling<br>${esc(p.pace)} · ${esc(p.budget)}</div>
+      <div class="dest-meta"><b>${p.nights}</b> nights · <b>${p.people}</b> traveling<br>${esc(p.pace)}</div>
     </div>
     <div class="sec">The days</div>
     ${days}${honest}
-    <div class="sec">The budget</div>
-    <div class="bud">
-      ${budgetRows}
-      <div class="bline total"><div class="k">Total</div><div class="v">${money(b.total,cur)}</div></div>
-    </div>
-    ${perPerson?`<div class="perhead">per person · <b>${money(perPerson,cur)}</b></div>`:''}
-    ${budNote}
+    ${food}
     ${hotels}
     ${logi}
     <div class="actions">
@@ -320,8 +369,8 @@ function render(p,plan){
 
   document.getElementById('cp').onclick=()=>{
     const t=`${p.city}${p.country?', '+p.country:''} — ${p.nights} nights, ${p.people} travelers, ${p.pace}\n\n`+
-      (plan.days||[]).map((d,i)=>`Day ${i+1} — ${d.title}\n`+(d.slots||[]).map(s=>`  ${s.time}  ${s.place} — ${s.tip}`).join('\n')).join('\n\n')+
-      `\n\nBUDGET (${cur})\n  Lodging ${b.lodging}\n  Food ${b.food}\n  Activities ${b.activities}\n  Local transport ${b.localTransport}\n  Flights ${b.flights}\n  TOTAL ${b.total}`+
+      (plan.days||[]).map((d,i)=>`Day ${i+1} — ${d.title}\n`+(d.slots||[]).map(s=>`  ${s.time}  ${s.place} — ${s.tip}`).join('\n')+((d.eat&&d.eat.place)?`\n  Eat: ${d.eat.place}${d.eat.dish?` — ${d.eat.dish}`:''}`:'')).join('\n\n')+
+      ((plan.food&&plan.food.length)?`\n\nBEST BITES\n`+plan.food.map(f=>`  ${f.name} — ${f.dish}${f.area?` (${f.area})`:''}`).join('\n'):'')+
       (plan.honest_note?`\n\nRead: ${plan.honest_note}`:'');
     navigator.clipboard.writeText(t).then(()=>{const x=document.getElementById('cp');x.textContent='Copied';setTimeout(()=>x.textContent='Copy as text',1500);});
   };

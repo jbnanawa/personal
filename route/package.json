@@ -1,7 +1,7 @@
 {
-  "name": "manifest-trip-planner",
+  "name": "gora-travel",
   "version": "1.0.0",
   "private": true,
-  "description": "Standalone trip planner and budget ledger, powered by the Anthropic API.",
+  "description": "Standalone trip planner, powered by the Anthropic API.",
   "type": "module"
 }
