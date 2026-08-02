@@ -91,6 +91,7 @@ ITINERARY RULES:
 - Use REAL, well-known named places for this destination (specific museums, markets, restaurants, viewpoints, neighborhoods).
 - Density by pace: packed=4-5 stops/day, moderate=3, slow=1-2.
 - Order within a day: crowd-sensitive landmarks early; flexible/late-hours places as buffer; a viewpoint at golden hour; dinner walkable from the last stop.
+- For each day, add an "eat": one real, well-known place to eat INSIDE that day's cluster (walkable/near the stops) plus its standout dish. No chains, no generic "a local cafe".
 - Rest days: "yes" => ~one per 4 days; "auto" => one only if nights>=4, placed late-middle (never day 1 or last); "no" => none. Rest day = light frame (neighborhood + 2-3 optional cafes + one backup), not a full schedule.
 - Family with kids: fewer stops, more breaks even if pace says packed — note the adjustment.
 - 5+ travelers: note everything needs reservations.
@@ -105,14 +106,18 @@ BUDGET RULES (estimate in ${cur}, be realistic for the destination and budget ti
 - total = sum of all five.
 - Add one budget_note: the single biggest cost risk or the line most likely to blow the budget.
 
+FOOD TO TRY:
+- food: the 3 most iconic/worthwhile places to eat across the whole destination — each a REAL named spot with its signature dish and the area/neighborhood to find it. Not chains, not generic. These are destination highlights, distinct from the per-day "eat" picks.
+
 HONESTY:
 - honest_note: 1-2 sentences naming the plan's real weakness (overstuffed day, a stop not worth its time, a deceptively long transit leg, or a budget line that's optimistic).
 
 KEEP IT COMPACT (important — the whole reply must fit in one short JSON response):
 - Each "tip" is one short phrase, max 12 words. No full sentences.
 - "hotels": at most 2 entries. "logistics": at most 4 items. Each "tradeoff" and logistics item max 14 words.
+- Each "dish" max 8 words. "food": exactly 3 entries. Each "area" max 4 words. Don't reuse a day's "eat" spot in "food".
 - Do not repeat information across fields. Favor brevity over completeness.
 
 Respond with ONLY valid JSON, no markdown fence, no preamble:
-{"days":[{"title":"string","rest":boolean,"slots":[{"time":"HH:MM or —","place":"string","tip":"string"}]}],"hotels":[{"name":"string","tradeoff":"string"}],"budget":{"currency":"${cur}","lodging":0,"food":0,"activities":0,"localTransport":0,"flights":0,"total":0,"budget_note":"string"},"logistics":["string"],"honest_note":"string"}`;
+{"days":[{"title":"string","rest":boolean,"slots":[{"time":"HH:MM or —","place":"string","tip":"string"}],"eat":{"place":"string","dish":"string"}}],"food":[{"name":"string","dish":"string","area":"string"}],"hotels":[{"name":"string","tradeoff":"string"}],"budget":{"currency":"${cur}","lodging":0,"food":0,"activities":0,"localTransport":0,"flights":0,"total":0,"budget_note":"string"},"logistics":["string"],"honest_note":"string"}`;
 }

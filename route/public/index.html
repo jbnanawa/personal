@@ -19,6 +19,7 @@
   --clay-dk:#a8481f;
   --teal:#2f6f63;      /* go / transit */
   --gold:#9a7526;      /* money */
+  --berry:#9c3f5a;     /* food */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -119,6 +120,18 @@ input::placeholder{color:#b6b0a2}
 .hotel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:10px}
 .hotel b{font-family:Georgia,serif;font-size:16px;font-weight:700}
 .hotel .tr{font-size:13px;color:var(--muted);margin-top:3px}
+
+/* per-day food pick */
+.eat{display:flex;gap:10px;align-items:baseline;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);font-size:13.5px}
+.eat .lab{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--berry);flex:0 0 auto;padding-top:2px}
+.eat .d b{font-weight:600}
+.eat .d span{color:var(--muted)}
+
+/* best-bites cards */
+.eatspot{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:10px;border-left:3px solid var(--berry)}
+.eatspot b{font-family:Georgia,serif;font-size:16px;font-weight:700}
+.eatspot .dish{font-size:13.5px;color:var(--ink);margin-top:3px}
+.eatspot .area{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:11px;color:var(--faint);letter-spacing:.04em;margin-top:5px}
 
 ul.check{list-style:none}
 ul.check li{padding:10px 0 10px 24px;border-top:1px solid var(--line-soft);font-size:13.5px;color:var(--muted);position:relative}
@@ -276,7 +289,8 @@ function render(p,plan){
   const cur=(plan.budget&&plan.budget.currency)||p.currency;
   const days=(plan.days||[]).map((d,i)=>{
     const slots=(d.slots||[]).map(s=>`<div class="slot"><div class="t">${esc(s.time)||'—'}</div><div class="d"><b>${esc(s.place)}</b><span>${esc(s.tip)}</span></div></div>`).join('');
-    return `<div class="day${d.rest?' rest':''}"><div class="daynum">Day ${String(i+1).padStart(2,'0')}</div><div class="daytitle">${esc(d.title)}</div>${slots}</div>`;
+    const eat=(d.eat&&d.eat.place)?`<div class="eat"><span class="lab">Eat nearby</span><div class="d"><b>${esc(d.eat.place)}</b>${d.eat.dish?`<span> — ${esc(d.eat.dish)}</span>`:''}</div></div>`:'';
+    return `<div class="day${d.rest?' rest':''}"><div class="daynum">Day ${String(i+1).padStart(2,'0')}</div><div class="daytitle">${esc(d.title)}</div>${slots}${eat}</div>`;
   }).join('');
 
   const b=plan.budget||{};
@@ -289,6 +303,8 @@ function render(p,plan){
     ['Flights',p.people+' travelers',b.flights],
   ].map(([k,sub,v])=>`<div class="bline"><div class="k">${k}<small>${sub}</small></div><div class="v">${money(v,cur)}</div></div>`).join('');
 
+  const food=(plan.food&&plan.food.length)?
+    `<div class="sec">Best bites</div>`+plan.food.map(f=>`<div class="eatspot"><b>${esc(f.name)}</b><div class="dish">${esc(f.dish)}</div>${f.area?`<div class="area">${esc(f.area)}</div>`:''}</div>`).join(''):'';
   const hotels=(plan.hotels&&plan.hotels.length)?
     `<div class="sec">Where to stay</div>`+plan.hotels.map(h=>`<div class="hotel"><b>${esc(h.name)}</b><div class="tr">${esc(h.tradeoff)}</div></div>`).join(''):'';
   const logi=(plan.logistics&&plan.logistics.length)?
@@ -306,6 +322,7 @@ function render(p,plan){
     </div>
     <div class="sec">The days</div>
     ${days}${honest}
+    ${food}
     <div class="sec">The budget</div>
     <div class="bud">
       ${budgetRows}
@@ -322,7 +339,8 @@ function render(p,plan){
 
   document.getElementById('cp').onclick=()=>{
     const t=`${p.city}${p.country?', '+p.country:''} — ${p.nights} nights, ${p.people} travelers, ${p.pace}\n\n`+
-      (plan.days||[]).map((d,i)=>`Day ${i+1} — ${d.title}\n`+(d.slots||[]).map(s=>`  ${s.time}  ${s.place} — ${s.tip}`).join('\n')).join('\n\n')+
+      (plan.days||[]).map((d,i)=>`Day ${i+1} — ${d.title}\n`+(d.slots||[]).map(s=>`  ${s.time}  ${s.place} — ${s.tip}`).join('\n')+((d.eat&&d.eat.place)?`\n  Eat: ${d.eat.place}${d.eat.dish?` — ${d.eat.dish}`:''}`:'')).join('\n\n')+
+      ((plan.food&&plan.food.length)?`\n\nBEST BITES\n`+plan.food.map(f=>`  ${f.name} — ${f.dish}${f.area?` (${f.area})`:''}`).join('\n'):'')+
       `\n\nBUDGET (${cur})\n  Lodging ${b.lodging}\n  Food ${b.food}\n  Activities ${b.activities}\n  Local transport ${b.localTransport}\n  Flights ${b.flights}\n  TOTAL ${b.total}`+
       (plan.honest_note?`\n\nRead: ${plan.honest_note}`:'');
     navigator.clipboard.writeText(t).then(()=>{const x=document.getElementById('cp');x.textContent='Copied';setTimeout(()=>x.textContent='Copy as text',1500);});
