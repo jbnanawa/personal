@@ -158,6 +158,8 @@ footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-fa
       <div class="field"><label>Country</label><input type="text" id="country" placeholder="Hawaii, USA"></div>
       <div class="field"><label>Nights</label><input type="number" id="nights" min="1" max="21" value="4" required></div>
     </div>
+    <div class="field"><label>Postal code <span class="sub">optional — narrows the area</span></label>
+      <input type="text" id="postal" placeholder="96740"></div>
   </div>
 
   <div class="group">
@@ -245,7 +247,7 @@ document.getElementById('f').addEventListener('submit',async e=>{
   e.preventDefault();
   const g=document.getElementById('go'),st=document.getElementById('st');
   const payload={
-    city:val('city')||'destination',country:val('country'),
+    city:val('city')||'destination',country:val('country'),postal:val('postal'),
     nights:+val('nights'),people:+val('people'),
     group:S.group,pace:S.pace,budget:S.budget,hotel:S.hotel,rest:S.rest,
     currency:val('currency')||'USD',dailyRate:val('dailyRate'),flightEst:val('flightEst')

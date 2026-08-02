@@ -12,9 +12,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { city, country, nights, people, group, pace, budget, hotel, rest, currency, dailyRate, flightEst } = req.body || {};
+    const { city, country, postal, nights, people, group, pace, budget, hotel, rest, currency, dailyRate, flightEst } = req.body || {};
 
-    const prompt = buildPrompt({ city, country, nights, people, group, pace, budget, hotel, rest, currency, dailyRate, flightEst });
+    const prompt = buildPrompt({ city, country, postal, nights, people, group, pace, budget, hotel, rest, currency, dailyRate, flightEst });
 
     // Abort the upstream call before the serverless function's own limit is hit,
     // so a slow model returns a clean JSON error instead of a platform crash page.
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
 
 function buildPrompt(p) {
   const cur = p.currency || "USD";
-  return `You are an expert trip planner AND budget estimator. Build a ${p.nights}-night itinerary for ${p.city}${p.country ? ", " + p.country : ""}.
+  return `You are an expert trip planner AND budget estimator. Build a ${p.nights}-night itinerary for ${p.city}${p.country ? ", " + p.country : ""}.${p.postal ? ` Anchor the itinerary around postal/ZIP code ${p.postal}: favor neighborhoods, stops, and lodging in or near that area, and name the district/area it maps to so the traveler knows where to go.` : ""}
 
 Travelers: ${p.people} (${p.group}). Pace: ${p.pace}. Budget tier: ${p.budget}. Hotel: ${p.hotel}. Rest days: ${p.rest}.
 Currency: ${cur}. User's rough daily spend guess per person: ${p.dailyRate || "unspecified"}. Flights estimate (total, all travelers): ${p.flightEst || "unspecified"}.
